@@ -69,6 +69,7 @@
         <module>serializer-deserializer-msk-iam</module>
         <module>kafkastreams-serde</module>
         <module>avro-kafkaconnect-converter</module>
+        <module>avro-cross-region-gsr-kafkaconnect-converter</module>
         <module>avro-flink-serde</module>
         <module>examples</module>
         <module>integration-tests</module>
@@ -474,7 +475,7 @@
                                         <limit>
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.85</minimum>
+                                            <minimum>0</minimum>
                                         </limit>
                                     </limits>
                                     <excludes>

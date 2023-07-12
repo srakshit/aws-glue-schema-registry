@@ -72,6 +72,9 @@ public class GlueSchemaRegistryConfigurationTest {
         configs.put(AWSSchemaRegistryConstants.COMPRESSION_TYPE, AWSSchemaRegistryConstants.COMPRESSION.ZLIB.name());
         configs.put(AWSSchemaRegistryConstants.AWS_REGION, "US-West-1");
         configs.put(AWSSchemaRegistryConstants.AWS_ENDPOINT, "https://test/");
+        configs.put(AWSSchemaRegistryConstants.AWS_SRC_REGION, "US-East-1");
+        configs.put(AWSSchemaRegistryConstants.AWS_SRC_ENDPOINT, "https://test2/");
+        configs.put(AWSSchemaRegistryConstants.AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN, "arn:aws:iam::xxxx:role");
         configs.put(AWSSchemaRegistryConstants.CACHE_SIZE, "1000");
         configs.put(AWSSchemaRegistryConstants.CACHE_TIME_TO_LIVE_MILLIS, "100");
         configs.put(AWSSchemaRegistryConstants.AVRO_RECORD_TYPE, AvroRecordType.GENERIC_RECORD.getName());
@@ -82,6 +85,9 @@ public class GlueSchemaRegistryConfigurationTest {
         assertEquals(glueSchemaRegistryConfiguration.getCompressionType().name(), AWSSchemaRegistryConstants.COMPRESSION.ZLIB.name());
         assertEquals("US-West-1", glueSchemaRegistryConfiguration.getRegion());
         assertEquals("https://test/", glueSchemaRegistryConfiguration.getEndPoint());
+        assertEquals("US-East-1", glueSchemaRegistryConfiguration.getSrcRegion());
+        assertEquals("https://test2/", glueSchemaRegistryConfiguration.getSrcEndPoint());
+        assertEquals("arn:aws:iam::xxxx:role", glueSchemaRegistryConfiguration.getSrcRegionSchemRegistryRoleArn());
         assertEquals(1000, glueSchemaRegistryConfiguration.getCacheSize());
         assertEquals(100, glueSchemaRegistryConfiguration.getTimeToLiveMillis());
         assertEquals(AvroRecordType.GENERIC_RECORD, glueSchemaRegistryConfiguration.getAvroRecordType());

@@ -91,6 +91,38 @@ public class GlueSchemaRegistryDeserializationFacade implements Closeable {
         this.cache = initializeCache();
     }
 
+    /**TODO
+     * Constructor accepting various dependencies.
+     *
+     * @param configs              configuration map
+     * @param properties           configuration properties
+     * @param credentialProvider   credentials provider for integrating with schema
+     *                             registry service
+     * @param schemaRegistryClient schema registry client for communicating with
+     *                             schema registry service
+     */
+    @Builder
+    public GlueSchemaRegistryDeserializationFacade(Map<String, ?> configs, Properties properties, @NonNull AwsCredentialsProvider credentialProvider,
+                                                   AWSSchemaRegistryClient schemaRegistryClient,
+                                                   @NonNull boolean shouldAccessCrossRegionSchemaRegistry) {
+        this.credentialsProvider = credentialProvider;
+        if (configs != null) {
+            this.glueSchemaRegistryConfiguration = new GlueSchemaRegistryConfiguration(configs);
+        } else if (properties != null) {
+            this.glueSchemaRegistryConfiguration = new GlueSchemaRegistryConfiguration(properties);
+        } else {
+            throw new AWSSchemaRegistryException("Either properties or configuration has to be provided");
+        }
+        if (schemaRegistryClient != null) {
+            this.schemaRegistryClient = schemaRegistryClient;
+        } else {
+            this.schemaRegistryClient = new AWSSchemaRegistryClient(credentialsProvider, this.glueSchemaRegistryConfiguration, shouldAccessCrossRegionSchemaRegistry);
+        }
+
+        this.deserializerFactory = new GlueSchemaRegistryDeserializerFactory();
+        this.cache = initializeCache();
+    }
+
     private LoadingCache<UUID, Schema> initializeCache() {
         return CacheBuilder
                 .newBuilder()
@@ -103,6 +135,15 @@ public class GlueSchemaRegistryDeserializationFacade implements Closeable {
         this.credentialsProvider = credentialsProvider;
         this.glueSchemaRegistryConfiguration = configuration;
         this.schemaRegistryClient = new AWSSchemaRegistryClient(credentialsProvider, this.glueSchemaRegistryConfiguration);
+        this.deserializerFactory = new GlueSchemaRegistryDeserializerFactory();
+        this.cache = initializeCache();
+    }
+
+    public GlueSchemaRegistryDeserializationFacade(@NonNull GlueSchemaRegistryConfiguration configuration, @NonNull AwsCredentialsProvider credentialsProvider,
+                                                   @NonNull boolean shouldAccessCrossRegionSchemaRegistry) {
+        this.credentialsProvider = credentialsProvider;
+        this.glueSchemaRegistryConfiguration = configuration;
+        this.schemaRegistryClient = new AWSSchemaRegistryClient(credentialsProvider, this.glueSchemaRegistryConfiguration, shouldAccessCrossRegionSchemaRegistry);
         this.deserializerFactory = new GlueSchemaRegistryDeserializerFactory();
         this.cache = initializeCache();
     }

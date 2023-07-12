@@ -27,6 +27,18 @@ public final class AWSSchemaRegistryConstants {
      */
     public static final String AWS_REGION = "region";
     /**
+     * TODO: AWS endpoint to use while initializing the client for service.
+     */
+    public static final String AWS_SRC_ENDPOINT = "srcEndpoint";
+    /**
+     * TODO: AWS source region to use while initializing the client for service.
+     */
+    public static final String AWS_SRC_REGION = "srcRegion";
+    /**
+     * TODO: AWS region to use while initializing the client for service.
+     */
+    public static final String AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN = "srcRegionSchemRegistryRoleArn";
+    /**
      * Header Version Byte.
      */
     public static final byte HEADER_VERSION_BYTE = (byte) 3;

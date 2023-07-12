@@ -109,6 +109,77 @@ public class AWSSchemaRegistryClient {
         this.client = glueClientBuilder.build();
     }
 
+    /**TODO
+     * Create Amazon Schema Registry Client.
+     *
+     * @param credentialsProvider           credentials provider
+     * @param glueSchemaRegistryConfiguration schema registry configuration elements
+     * @throws AWSSchemaRegistryException on any error while building the client
+     */
+    public AWSSchemaRegistryClient(@NonNull AwsCredentialsProvider credentialsProvider,
+                                   @NonNull GlueSchemaRegistryConfiguration glueSchemaRegistryConfiguration,
+                                   @NonNull RetryPolicy retryPolicy,
+                                   @NonNull boolean shouldAccessCrossRegionSchemaRegistry) {
+        this.glueSchemaRegistryConfiguration = glueSchemaRegistryConfiguration;
+        ClientOverrideConfiguration overrideConfiguration = ClientOverrideConfiguration.builder()
+                .retryPolicy(retryPolicy)
+                .addExecutionInterceptor(new UserAgentRequestInterceptor())
+                .build();
+
+        if (shouldAccessCrossRegionSchemaRegistry) {
+            log.info("Building Glue Client");
+            log.info(Region.of(glueSchemaRegistryConfiguration.getSrcRegion()).toString());
+            GlueClientBuilder glueClientBuilder = GlueClient
+                    .builder()
+                    .credentialsProvider(credentialsProvider)
+                    .overrideConfiguration(overrideConfiguration)
+                    .httpClient(UrlConnectionHttpClient.builder().build())
+                    .region(Region.of(glueSchemaRegistryConfiguration.getSrcRegion()));
+
+            if (glueSchemaRegistryConfiguration.getSrcEndPoint() != null) {
+                try {
+                    glueClientBuilder.endpointOverride(new URI(glueSchemaRegistryConfiguration.getSrcEndPoint()));
+                } catch (URISyntaxException e) {
+                    String message = String.format("Malformed uri, please pass the valid uri for creating the client",
+                            glueSchemaRegistryConfiguration.getSrcEndPoint());
+                    throw new AWSSchemaRegistryException(message, e);
+                }
+            }
+            this.client = glueClientBuilder.build();
+        } else {
+            GlueClientBuilder glueClientBuilder = GlueClient
+                    .builder()
+                    .credentialsProvider(credentialsProvider)
+                    .overrideConfiguration(overrideConfiguration)
+                    .httpClient(UrlConnectionHttpClient.builder().build())
+                    .region(Region.of(glueSchemaRegistryConfiguration.getRegion()));
+
+            if (glueSchemaRegistryConfiguration.getEndPoint() != null) {
+                try {
+                    glueClientBuilder.endpointOverride(new URI(glueSchemaRegistryConfiguration.getEndPoint()));
+                } catch (URISyntaxException e) {
+                    String message = String.format("Malformed uri, please pass the valid uri for creating the client",
+                            glueSchemaRegistryConfiguration.getEndPoint());
+                    throw new AWSSchemaRegistryException(message, e);
+                }
+            }
+            this.client = glueClientBuilder.build();
+        }
+    }
+
+    /**TODO
+     * Create Amazon Schema Registry Client.
+     *
+     * @param credentialsProvider           credentials provider
+     * @param glueSchemaRegistryConfiguration schema registry configuration elements
+     * @throws AWSSchemaRegistryException on any error while building the client
+     */
+    public AWSSchemaRegistryClient(@NonNull AwsCredentialsProvider credentialsProvider,
+                                   @NonNull GlueSchemaRegistryConfiguration glueSchemaRegistryConfiguration,
+                                   @NonNull boolean shouldAccessCrossRegionSchemaRegistry) {
+        this(credentialsProvider, glueSchemaRegistryConfiguration, RetryPolicy.defaultRetryPolicy(), shouldAccessCrossRegionSchemaRegistry);
+    }
+
     /**
      * Create Amazon Schema Registry Client.
      *
