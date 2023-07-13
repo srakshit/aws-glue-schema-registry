@@ -81,7 +81,8 @@ public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter
      */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        this.isKey = isKey;
+        //assumeCrossRegionSchemaRegistryRole(configs);
+	    this.isKey = isKey;
         serializer = new GlueSchemaRegistrySerializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
         //serializer.setUserAgentApp(UserAgents.KAFKACONNECT);
         remoteDeserializer = new GlueSchemaRegistryDeserializerCrossRegionImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
@@ -94,7 +95,7 @@ public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter
             StsClient stsClient = StsClient.builder().region(region).httpClient(UrlConnectionHttpClient.builder().build()).build();
             AssumeRoleRequest roleRequest = AssumeRoleRequest.builder()
                     .roleArn(configs.get(AWSSchemaRegistryConstants.AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN).toString())
-                    .roleSessionName("cross-region-schema-registry-role")
+                    .roleSessionName("cross-region-glue-schema-registry-role")
                     .build();
                     
             AssumeRoleResponse roleResponse = stsClient.assumeRole(roleRequest);
