@@ -61,6 +61,7 @@ public class CrossRegionReplicationSchemaRegistryMm2Converter implements Convert
     public void configure(Map<String, ?> configs, boolean isKey) {
 	    this.isKey = isKey;
         serializer = new GlueSchemaRegistrySerializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
+        //TODO: CG_GSR: Add user agent Kafka Connect
         //serializer.setUserAgentApp(UserAgents.KAFKACONNECT);
         remoteDeserializer = new GlueSchemaRegistryDeserializerCrossRegionImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
         //remoteDeserializer.setUserAgentApp(UserAgents.KAFKACONNECT);
@@ -83,7 +84,7 @@ public class CrossRegionReplicationSchemaRegistryMm2Converter implements Convert
             deserialized = remoteDeserializer.getData((byte[]) value);
             remoteSchema = remoteDeserializer.getSchema((byte[]) value);
 
-            //TODO: Remove this
+            //TODO: CG_GSR: Remove this
             log.info("Deserialised data: " + deserialized.toString());
 
             byte[] serialized;

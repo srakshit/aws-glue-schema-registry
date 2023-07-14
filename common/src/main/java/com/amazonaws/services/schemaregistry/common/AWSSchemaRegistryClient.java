@@ -109,11 +109,13 @@ public class AWSSchemaRegistryClient {
         this.client = glueClientBuilder.build();
     }
 
-    /**TODO
+    /**
      * Create Amazon Schema Registry Client.
      *
      * @param credentialsProvider           credentials provider
      * @param glueSchemaRegistryConfiguration schema registry configuration elements
+     * @param retryPolicy retry policy that should be used when handling failure cases
+     * @param shouldAccessCrossRegionSchemaRegistry enable cross region schema registry access
      * @throws AWSSchemaRegistryException on any error while building the client
      */
     public AWSSchemaRegistryClient(@NonNull AwsCredentialsProvider credentialsProvider,
@@ -125,7 +127,7 @@ public class AWSSchemaRegistryClient {
                 .retryPolicy(retryPolicy)
                 .addExecutionInterceptor(new UserAgentRequestInterceptor())
                 .build();
-        //TODO: Needs refactoring
+        //TODO: CG_GSR: Needs refactoring
         if (shouldAccessCrossRegionSchemaRegistry) {
             GlueClientBuilder glueClientBuilder = GlueClient
                     .builder()
@@ -170,6 +172,7 @@ public class AWSSchemaRegistryClient {
      *
      * @param credentialsProvider           credentials provider
      * @param glueSchemaRegistryConfiguration schema registry configuration elements
+     * @param shouldAccessCrossRegionSchemaRegistry enable cross region schema registry access
      * @throws AWSSchemaRegistryException on any error while building the client
      */
     public AWSSchemaRegistryClient(@NonNull AwsCredentialsProvider credentialsProvider,

@@ -27,11 +27,11 @@ public final class AWSSchemaRegistryConstants {
      */
     public static final String AWS_REGION = "region";
     /**
-     * TODO: AWS endpoint to use while initializing the client for service.
+     * TODO: CR_GSR: AWS source endpoint to use while initializing the client for service.
      */
     public static final String AWS_SRC_ENDPOINT = "source.endpoint";
     /**
-     * TODO: AWS source region to use while initializing the client for service.
+     * TODO: CG_GSR: AWS source region to use while initializing the client for service.
      */
     public static final String AWS_SRC_REGION = "source.region";
     /**
