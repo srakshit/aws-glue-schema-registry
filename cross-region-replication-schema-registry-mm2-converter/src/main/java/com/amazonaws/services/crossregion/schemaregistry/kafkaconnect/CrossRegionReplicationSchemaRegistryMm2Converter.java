@@ -16,7 +16,6 @@
 package com.amazonaws.services.crossregion.schemaregistry.kafkaconnect;
 
 import com.amazonaws.services.schemaregistry.common.configs.GlueSchemaRegistryConfiguration;
-import com.amazonaws.services.schemaregistry.common.configs.UserAgents;
 import com.amazonaws.services.schemaregistry.deserializers.GlueSchemaRegistryDeserializerCrossRegionImpl;
 import com.amazonaws.services.schemaregistry.exception.AWSSchemaRegistryException;
 import com.amazonaws.services.schemaregistry.kafkaconnect.avrodata.AvroData;
@@ -31,23 +30,16 @@ import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.storage.Converter;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
-import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
-import software.amazon.awssdk.services.sts.model.Credentials;
-import software.amazon.awssdk.services.sts.model.StsException;
 
 import java.util.Map;
 
 /**
- * Amazon Schema Registry Avro converter for Kafka Connect users.
+ * Amazon Schema Registry MM2 converter for Kafka Connect users.
  */
 
 @Slf4j
 @Data
-public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter {
+public class CrossRegionReplicationSchemaRegistryMm2Converter implements Converter {
     private GlueSchemaRegistrySerializerImpl serializer;
     private GlueSchemaRegistryDeserializerCrossRegionImpl remoteDeserializer;
     private AvroData avroData;
@@ -57,31 +49,16 @@ public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter
     /**
      * Constructor used by Kafka Connect user.
      */
-    public AWSCrossRegionSchemaRegistryKafkaAvroConverter() {
-//        serializer = new GlueSchemaRegistrySerializerImpl();
-//        serializer.setUserAgentApp(UserAgents.KAFKACONNECT);
-
-//        deserializer = new AWSCrossRegionSchemaRegistryKafkaAvroDeserializer();
-//        deserializer.setUserAgentApp(UserAgents.KAFKACONNECT);
+    public CrossRegionReplicationSchemaRegistryMm2Converter() {
     }
 
-//    public AWSCrossRegionSchemaRegistryKafkaAvroConverter(
-//            AWSKafkaAvroSerializer awsKafkaAvroSerializer,
-//            GlueSchemaRegistryDeserializerImpl remoteDeserializer,
-//            AvroData avroData) {
-//        serializer = awsKafkaAvroSerializer;
-//        this.remoteDeserializer = remoteDeserializer;
-//        this.avroData = avroData;
-//    }
-
     /**
-     * Configure the AWS Avro Converter.
+     * Configure the AWS Schema Registry Converter.
      * @param configs configuration elements for the converter
      * @param isKey true if key, false otherwise
      */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        //assumeCrossRegionSchemaRegistryRole(configs);
 	    this.isKey = isKey;
         serializer = new GlueSchemaRegistrySerializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
         //serializer.setUserAgentApp(UserAgents.KAFKACONNECT);
@@ -89,32 +66,12 @@ public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter
         //remoteDeserializer.setUserAgentApp(UserAgents.KAFKACONNECT);
     }
 
-    public void assumeCrossRegionSchemaRegistryRole(Map<String, ?> configs) {
-        try {
-            Region region = Region.of(configs.get(AWSSchemaRegistryConstants.AWS_SRC_REGION).toString());
-            StsClient stsClient = StsClient.builder().region(region).httpClient(UrlConnectionHttpClient.builder().build()).build();
-            AssumeRoleRequest roleRequest = AssumeRoleRequest.builder()
-                    .roleArn(configs.get(AWSSchemaRegistryConstants.AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN).toString())
-                    .roleSessionName("cross-region-glue-schema-registry-role")
-                    .build();
-                    
-            AssumeRoleResponse roleResponse = stsClient.assumeRole(roleRequest);
-            Credentials myCreds = roleResponse.credentials();
-            System.setProperty("aws.accessKeyId", myCreds.accessKeyId());
-            System.setProperty("aws.secretAccessKey", myCreds.secretAccessKey());
-            System.setProperty("aws.sessionToken", myCreds.sessionToken());
-            stsClient.close();
-        } catch (StsException e) {
-            throw e;
-        }
-    }
-
     /**
-     * Convert orginal Connect data to AVRO serialized byte array
+     * Convert orginal Connect data to Schema Registry supported format serialized byte array
      * @param topic topic name
      * @param schema original Connect schema
      * @param value original Connect data
-     * @return AVRO serialized byte array
+     * @return Schema Registry format serialized byte array
      */
     @Override
     public byte[] fromConnectData(String topic, Schema schema, Object value) {
@@ -126,20 +83,21 @@ public class AWSCrossRegionSchemaRegistryKafkaAvroConverter implements Converter
             deserialized = remoteDeserializer.getData((byte[]) value);
             remoteSchema = remoteDeserializer.getSchema((byte[]) value);
 
+            //TODO: Remove this
             log.info("Deserialised data: " + deserialized.toString());
 
             byte[] serialized;
             serialized = serializer.encode(topic, remoteSchema, deserialized);
             return serialized;
         } catch (SerializationException | AWSSchemaRegistryException e) {
-            throw new DataException("Converting Kafka Connect data to byte[] failed due to serialization error: ", e);
+            throw new DataException("Converting Kafka Connect data to byte[] failed due to serialization/deserialization error: ", e);
         }
     }
 
     /**
-     * Convert AVRO serialized byte array to Connect schema and data
+     * Convert Schema Registry supported format serialized byte array to Connect schema and data
      * @param topic topic name
-     * @param value AVRO serialized byte array
+     * @param value Schema Registry format serialized byte array
      * @return Connect schema and data
      */
     @Override

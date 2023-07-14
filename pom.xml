@@ -69,7 +69,7 @@
         <module>serializer-deserializer-msk-iam</module>
         <module>kafkastreams-serde</module>
         <module>avro-kafkaconnect-converter</module>
-        <module>avro-cross-region-gsr-kafkaconnect-converter</module>
+        <module>cross-region-replication-schema-registry-mm2-converter</module>
         <module>avro-flink-serde</module>
         <module>examples</module>
         <module>integration-tests</module>

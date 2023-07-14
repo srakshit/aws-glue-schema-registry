@@ -125,10 +125,8 @@ public class AWSSchemaRegistryClient {
                 .retryPolicy(retryPolicy)
                 .addExecutionInterceptor(new UserAgentRequestInterceptor())
                 .build();
-
+        //TODO: Needs refactoring
         if (shouldAccessCrossRegionSchemaRegistry) {
-            log.info("Building Glue Client");
-            log.info(Region.of(glueSchemaRegistryConfiguration.getSrcRegion()).toString());
             GlueClientBuilder glueClientBuilder = GlueClient
                     .builder()
                     .credentialsProvider(credentialsProvider)

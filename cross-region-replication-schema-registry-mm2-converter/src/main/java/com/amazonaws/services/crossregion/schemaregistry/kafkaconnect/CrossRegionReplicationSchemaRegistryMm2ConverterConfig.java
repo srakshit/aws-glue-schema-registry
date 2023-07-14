@@ -21,17 +21,17 @@ import org.apache.kafka.common.config.ConfigDef;
 import java.util.Map;
 
 /**
- * Amazon Schema Registry Avro converter config.
+ * Amazon Schema Registry MM2 converter config.
  */
-public class AWSCrossRegionSchemaRegistryKafkaAvroConverterConfig extends AbstractConfig {
+public class CrossRegionReplicationSchemaRegistryMm2ConverterConfig extends AbstractConfig {
     public static ConfigDef configDef() {
         return new ConfigDef();
     }
     /**TODO
-     * Constructor used by AWSKafkaAvroConverter.
+     * Constructor used by CrossRegionReplicationSchemaRegistryMm2Converter.
      * @param props property elements for the converter config
      */
-    public AWSCrossRegionSchemaRegistryKafkaAvroConverterConfig(Map<String, ?> props) {
+    public CrossRegionReplicationSchemaRegistryMm2ConverterConfig(Map<String, ?> props) {
         super(configDef(), props);
     }
 }

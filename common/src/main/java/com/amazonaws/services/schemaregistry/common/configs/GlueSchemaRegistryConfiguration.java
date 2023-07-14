@@ -45,7 +45,6 @@ public class GlueSchemaRegistryConfiguration {
     private String region;
     private String srcEndPoint;
     private String srcRegion;
-    private String srcRegionSchemRegistryRoleArn;
     private long timeToLiveMillis = 24 * 60 * 60 * 1000L;
     private int cacheSize = 200;
     private AvroRecordType avroRecordType;
@@ -89,7 +88,6 @@ public class GlueSchemaRegistryConfiguration {
     private void buildSchemaRegistryConfigs(Map<String, ?> configs) {
         validateAndSetAWSSrcRegion(configs);
         validateAndSetAWSSrcEndpoint(configs);
-        validateAndSetAWSSrcRegionSchemRegistryRoleArn(configs);
         validateAndSetAWSRegion(configs);
         validateAndSetAWSEndpoint(configs);
         validateAndSetRegistryName(configs);
@@ -198,12 +196,6 @@ public class GlueSchemaRegistryConfiguration {
     private void validateAndSetAWSSrcEndpoint(Map<String, ?> configs) {
         if (isPresent(configs, AWSSchemaRegistryConstants.AWS_SRC_ENDPOINT)) {
             this.srcEndPoint = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_SRC_ENDPOINT));
-        }
-    }
-
-    private void validateAndSetAWSSrcRegionSchemRegistryRoleArn(Map<String, ?> configs) {
-        if (isPresent(configs, AWSSchemaRegistryConstants.AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN)) {
-            this.srcRegionSchemRegistryRoleArn = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_SRC_REGION_SCHEMA_REGISTRY_ROLE_ARN));
         }
     }
 
