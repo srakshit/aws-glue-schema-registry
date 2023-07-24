@@ -31,6 +31,7 @@ public class CrossRegionReplicationSchemaRegistryMm2ConverterConfig extends Abst
      * Constructor used by CrossRegionReplicationSchemaRegistryMm2Converter.
      * @param props property elements for the converter config
      */
+
     public CrossRegionReplicationSchemaRegistryMm2ConverterConfig(Map<String, ?> props) {
         super(configDef(), props);
     }

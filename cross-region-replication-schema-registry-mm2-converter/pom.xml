@@ -65,6 +65,14 @@
             <artifactId>schema-registry-serde</artifactId>
             <version>${parent.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.1</version>
+            <type>maven-plugin</type>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
@@ -82,6 +90,11 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.7.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -176,31 +189,31 @@
             <id>publishing</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>sonatype-nexus-staging</serverId>
-                            <nexusUrl>https://aws.oss.sonatype.org</nexusUrl>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
+<!--                    <plugin>-->
+<!--                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                        <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                        <version>1.6</version>-->
+<!--                        <executions>-->
+<!--                            <execution>-->
+<!--                                <id>sign-artifacts</id>-->
+<!--                                <phase>verify</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>sign</goal>-->
+<!--                                </goals>-->
+<!--                            </execution>-->
+<!--                        </executions>-->
+<!--                    </plugin>-->
+<!--                    <plugin>-->
+<!--                        <groupId>org.sonatype.plugins</groupId>-->
+<!--                        <artifactId>nexus-staging-maven-plugin</artifactId>-->
+<!--                        <version>1.6.8</version>-->
+<!--                        <extensions>true</extensions>-->
+<!--                        <configuration>-->
+<!--                            <serverId>sonatype-nexus-staging</serverId>-->
+<!--                            <nexusUrl>https://aws.oss.sonatype.org</nexusUrl>-->
+<!--                            <autoReleaseAfterClose>false</autoReleaseAfterClose>-->
+<!--                        </configuration>-->
+<!--                    </plugin>-->
                 </plugins>
             </build>
         </profile>
