@@ -15,10 +15,11 @@
 
 package com.amazonaws.services.crossregion.schemaregistry.kafkaconnect;
 
+import com.amazonaws.services.schemaregistry.common.AWSSchemaRegistryClient;
 import com.amazonaws.services.schemaregistry.common.configs.GlueSchemaRegistryConfiguration;
-import com.amazonaws.services.schemaregistry.deserializers.GlueSchemaRegistryDeserializerCrossRegionImpl;
+//import com.amazonaws.services.schemaregistry.deserializers.GlueSchemaRegistryDeserializerCrossRegionImpl;
+import com.amazonaws.services.schemaregistry.deserializers.GlueSchemaRegistryDeserializerImpl;
 import com.amazonaws.services.schemaregistry.exception.AWSSchemaRegistryException;
-import com.amazonaws.services.schemaregistry.kafkaconnect.avrodata.AvroData;
 import com.amazonaws.services.schemaregistry.serializers.GlueSchemaRegistrySerializerImpl;
 
 import com.amazonaws.services.schemaregistry.utils.AWSSchemaRegistryConstants;
@@ -31,6 +32,8 @@ import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.storage.Converter;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,8 +44,10 @@ import java.util.Map;
 @Data
 public class CrossRegionReplicationSchemaRegistryMm2Converter implements Converter {
     private GlueSchemaRegistrySerializerImpl serializer;
-    private GlueSchemaRegistryDeserializerCrossRegionImpl remoteDeserializer;
-    private AvroData avroData;
+    //    private GlueSchemaRegistryDeserializerCrossRegionImpl remoteDeserializer;
+    private GlueSchemaRegistryDeserializerImpl deserializer;
+
+//    private AvroData avroData;
 
     private boolean isKey;
 
@@ -52,6 +57,17 @@ public class CrossRegionReplicationSchemaRegistryMm2Converter implements Convert
     public CrossRegionReplicationSchemaRegistryMm2Converter() {
     }
 
+    public CrossRegionReplicationSchemaRegistryMm2Converter(
+            GlueSchemaRegistrySerializerImpl serializer,
+//            GlueSchemaRegistryDeserializerCrossRegionImpl remoteDeserializer
+            GlueSchemaRegistryDeserializerImpl deserializer
+    ) {
+        this.serializer = serializer;
+//        this.remoteDeserializer = remoteDeserializer;
+        this.deserializer = deserializer;
+        this.isKey = false;
+    }
+
     /**
      * Configure the AWS Schema Registry Converter.
      * @param configs configuration elements for the converter
@@ -59,11 +75,22 @@ public class CrossRegionReplicationSchemaRegistryMm2Converter implements Convert
      */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-	    this.isKey = isKey;
-        serializer = new GlueSchemaRegistrySerializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
+        this.isKey = isKey;
+        new CrossRegionReplicationSchemaRegistryMm2ConverterConfig(configs);
+
+        Map<String, Object> sourceConfigs = new HashMap<>(configs);
+        Map<String, Object> targetConfigs = new HashMap<>(configs);
+
+        sourceConfigs.put(AWSSchemaRegistryConstants.AWS_REGION, configs.get(AWSSchemaRegistryConstants.AWS_SRC_REGION));
+        targetConfigs.put(AWSSchemaRegistryConstants.AWS_REGION, configs.get(AWSSchemaRegistryConstants.AWS_TGT_REGION));
+
+        serializer = new GlueSchemaRegistrySerializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(targetConfigs));
+
         //TODO: CR_GSR: Add user agent Kafka Connect
         //serializer.setUserAgentApp(UserAgents.KAFKACONNECT);
-        remoteDeserializer = new GlueSchemaRegistryDeserializerCrossRegionImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(configs));
+        //remoteDeserializer = new GlueSchemaRegistryDeserializerCrossRegionImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(sourceConfigs));
+        deserializer = new GlueSchemaRegistryDeserializerImpl(DefaultCredentialsProvider.builder().build(), new GlueSchemaRegistryConfiguration(sourceConfigs));
+
         //remoteDeserializer.setUserAgentApp(UserAgents.KAFKACONNECT);
     }
 
@@ -78,17 +105,20 @@ public class CrossRegionReplicationSchemaRegistryMm2Converter implements Convert
     public byte[] fromConnectData(String topic, Schema schema, Object value) {
         try {
             byte[] deserialized;
+
             com.amazonaws.services.schemaregistry.common.Schema remoteSchema;
             if (value == null) return new byte[0];
 
-            deserialized = remoteDeserializer.getData((byte[]) value);
-            remoteSchema = remoteDeserializer.getSchema((byte[]) value);
-
-            //TODO: CR_GSR: Remove this
-            log.info("Deserialised data: " + deserialized.toString());
+//            deserialized = remoteDeserializer.getData((byte[]) value);
+//            remoteSchema = remoteDeserializer.getSchema((byte[]) value);
+            deserialized = deserializer.getData((byte[]) value);
+            remoteSchema = deserializer.getSchema((byte[]) value);
+            System.out.println("deserialized:" + Arrays.toString(deserialized) + "\n");
 
             byte[] serialized;
             serialized = serializer.encode(topic, remoteSchema, deserialized);
+            System.out.println("serialized" + Arrays.toString(serialized) + "\n");
+
             return serialized;
         } catch (SerializationException | AWSSchemaRegistryException e) {
             throw new DataException("Converting Kafka Connect data to byte[] failed due to serialization/deserialization error: ", e);
