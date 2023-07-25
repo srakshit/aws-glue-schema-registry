@@ -45,6 +45,8 @@ public class GlueSchemaRegistryConfiguration {
     private String region;
     private String srcEndPoint;
     private String srcRegion;
+    private String tgtEndPoint;
+    private String tgtRegion;
     private long timeToLiveMillis = 24 * 60 * 60 * 1000L;
     private int cacheSize = 200;
     private AvroRecordType avroRecordType;
@@ -88,6 +90,8 @@ public class GlueSchemaRegistryConfiguration {
     private void buildSchemaRegistryConfigs(Map<String, ?> configs) {
         validateAndSetAWSSrcRegion(configs);
         validateAndSetAWSSrcEndpoint(configs);
+        validateAndSetAWSTgtRegion(configs);
+        validateAndSetAWSTgtEndpoint(configs);
         validateAndSetAWSRegion(configs);
         validateAndSetAWSEndpoint(configs);
         validateAndSetRegistryName(configs);
@@ -161,6 +165,14 @@ public class GlueSchemaRegistryConfiguration {
         }
     }
 
+    private void validateAndSetAWSTgtRegion(Map<String, ?> configs) {
+        if (isPresent(configs, AWSSchemaRegistryConstants.AWS_TGT_REGION)) {
+            this.tgtRegion = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_TGT_REGION));
+        } else {
+            this.tgtRegion = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_REGION));
+        }
+    }
+
     private void validateAndSetCompatibility(Map<String, ?> configs) {
         if (isPresent(configs, AWSSchemaRegistryConstants.COMPATIBILITY_SETTING)) {
             this.compatibilitySetting = Compatibility.fromValue(
@@ -198,6 +210,15 @@ public class GlueSchemaRegistryConfiguration {
             this.srcEndPoint = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_SRC_ENDPOINT));
         }
     }
+
+    private void validateAndSetAWSTgtEndpoint(Map<String, ?> configs) {
+        if (isPresent(configs, AWSSchemaRegistryConstants.AWS_TGT_ENDPOINT)) {
+            this.tgtEndPoint = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_TGT_ENDPOINT));
+        } else {
+            this.tgtEndPoint = String.valueOf(configs.get(AWSSchemaRegistryConstants.AWS_ENDPOINT));
+        }
+    }
+
 
     private void validateAndSetDescription(Map<String, ?> configs) throws AWSSchemaRegistryException {
         if (isPresent(configs, AWSSchemaRegistryConstants.DESCRIPTION)) {
