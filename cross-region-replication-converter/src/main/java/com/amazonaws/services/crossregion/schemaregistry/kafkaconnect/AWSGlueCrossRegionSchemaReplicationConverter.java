@@ -14,6 +14,8 @@ import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.storage.Converter;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.services.glue.model.Compatibility;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ public class AWSGlueCrossRegionSchemaReplicationConverter implements Converter {
     private GlueSchemaRegistryDeserializerImpl deserializer;
     private GlueSchemaRegistrySerializerImpl serializer;
     private boolean isKey;
+    private Map<String, Object> targetConfigs;
 
     /**
      * Constructor used by Kafka Connect user.
@@ -57,9 +60,9 @@ public class AWSGlueCrossRegionSchemaReplicationConverter implements Converter {
         // https://github.com/awslabs/aws-glue-schema-registry/issues/293
         credentialsProvider = DefaultCredentialsProvider.builder().build();
 
-        // Put the source and target regions into configurations respectively
+        // Put the source region into configurations respectively
+        targetConfigs = new HashMap<>(configs);
         Map<String, Object> sourceConfigs = new HashMap<>(configs);
-        Map<String, Object> targetConfigs = new HashMap<>(configs);
 
 
         if (configs.get(AWSSchemaRegistryConstants.AWS_SOURCE_REGION) == null) {
@@ -68,10 +71,8 @@ public class AWSGlueCrossRegionSchemaReplicationConverter implements Converter {
             throw new DataException("Target Region is not provided.");
         }
 
-        sourceConfigs.put(AWSSchemaRegistryConstants.AWS_REGION, configs.get(AWSSchemaRegistryConstants.AWS_SOURCE_REGION));
         targetConfigs.put(AWSSchemaRegistryConstants.AWS_REGION, configs.get(AWSSchemaRegistryConstants.AWS_TARGET_REGION));
-
-        serializer = new GlueSchemaRegistrySerializerImpl(credentialsProvider, new GlueSchemaRegistryConfiguration(targetConfigs));
+        sourceConfigs.put(AWSSchemaRegistryConstants.AWS_REGION, configs.get(AWSSchemaRegistryConstants.AWS_SOURCE_REGION));
         deserializer = new GlueSchemaRegistryDeserializerImpl(credentialsProvider, new GlueSchemaRegistryConfiguration(sourceConfigs));
     }
 
@@ -83,9 +84,13 @@ public class AWSGlueCrossRegionSchemaReplicationConverter implements Converter {
         try {
             byte[] deserializedBytes = deserializer.getData(bytes);
             Schema deserializedSchema = deserializer.getSchema(bytes);
-            //The registry is decided by the configuration in the target region , schema name is the same as the source region
-            // TODO: Prefix topic name with source cluster alias
-            // https://github.com/awslabs/aws-glue-schema-registry/issues/294
+            Compatibility schemaCompatibility = deserializer.getSchemaCompatibility(bytes);
+
+            System.out.println("^^COMPATIBILITY_SETTING 2: " + schemaCompatibility);
+
+            targetConfigs.put(AWSSchemaRegistryConstants.COMPATIBILITY_SETTING, schemaCompatibility);
+            serializer = new GlueSchemaRegistrySerializerImpl(credentialsProvider, new GlueSchemaRegistryConfiguration(targetConfigs));
+
             return serializer.encode(topic, deserializedSchema, deserializedBytes);
 
         }  catch(GlueSchemaRegistryIncompatibleDataException ex) {

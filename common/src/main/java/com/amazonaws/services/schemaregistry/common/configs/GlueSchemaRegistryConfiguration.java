@@ -190,6 +190,7 @@ public class GlueSchemaRegistryConfiguration {
 
     private void validateAndSetCompatibility(Map<String, ?> configs) {
         if (isPresent(configs, AWSSchemaRegistryConstants.COMPATIBILITY_SETTING)) {
+            System.out.println("^^COMPATIBILITY_SETTING : " + AWSSchemaRegistryConstants.COMPATIBILITY_SETTING);
             this.compatibilitySetting = Compatibility.fromValue(
                     String.valueOf(configs.get(AWSSchemaRegistryConstants.COMPATIBILITY_SETTING))
                             .toUpperCase());

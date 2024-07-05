@@ -18,6 +18,7 @@ import com.amazonaws.services.schemaregistry.common.Schema;
 import com.amazonaws.services.schemaregistry.common.configs.GlueSchemaRegistryConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.glue.model.Compatibility;
 
 /**
  * {@inheritDoc}
@@ -65,6 +66,15 @@ public class GlueSchemaRegistryDeserializerImpl implements GlueSchemaRegistryDes
     @Override
     public Schema getSchema(final byte[] data) {
         return glueSchemaRegistryDeserializationFacade.getSchema(data);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param data byte[] Schema Registry encoded byte array.
+     * @return compatibility mode {@link Compatibility} Compatibility mode of the schema.
+     */
+    public Compatibility getSchemaCompatibility(final byte[] data) {
+        return glueSchemaRegistryDeserializationFacade.getSchemaCompatibility(data);
     }
 
     /**

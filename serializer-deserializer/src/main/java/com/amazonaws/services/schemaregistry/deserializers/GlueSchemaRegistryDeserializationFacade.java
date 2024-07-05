@@ -20,6 +20,7 @@ import com.amazonaws.services.schemaregistry.common.Schema;
 import com.amazonaws.services.schemaregistry.common.configs.GlueSchemaRegistryConfiguration;
 import com.amazonaws.services.schemaregistry.exception.GlueSchemaRegistryIncompatibleDataException;
 import com.amazonaws.services.schemaregistry.exception.AWSSchemaRegistryException;
+import com.amazonaws.services.schemaregistry.utils.AWSSchemaRegistryConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -32,8 +33,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.services.glue.model.DataFormat;
-import software.amazon.awssdk.services.glue.model.GetSchemaVersionResponse;
+import software.amazon.awssdk.services.glue.model.*;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
@@ -142,6 +142,13 @@ public class GlueSchemaRegistryDeserializationFacade implements Closeable {
         return awsDeserializerSchema.getSchema();
     }
 
+    public Compatibility getSchemaCompatibility(@NonNull byte[] data) {
+        ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+        Compatibility schemaCompatibilityMode = getAwsDeserializerSchemaCompatibilityMode(byteBuffer);
+
+        return schemaCompatibilityMode;
+    }
+
     /**
      * Fetches the schema definition for a the serialized data.
      *
@@ -201,6 +208,28 @@ public class GlueSchemaRegistryDeserializationFacade implements Closeable {
         Schema schema = retrieveSchemaRegistrySchema(schemaVersionId);
 
         return new AwsDeserializerSchema(schemaVersionId, schema);
+    }
+
+    /**
+     * Helper function to return schema compatibility mode
+     *
+     * @param buffer byte buffer to be de-serialized
+     * @return schema version id and schema registry metadata
+     */
+    private Compatibility getAwsDeserializerSchemaCompatibilityMode(@NonNull ByteBuffer buffer) {
+        // Validate the data
+        GlueSchemaRegistryDeserializerDataParser dataParser = GlueSchemaRegistryDeserializerDataParser.getInstance();
+
+        UUID schemaVersionId = dataParser.getSchemaVersionId(buffer);
+
+        GetSchemaVersionResponse response =
+                schemaRegistryClient.getSchemaVersionResponse(schemaVersionId.toString());
+        GetSchemaResponse schemaResponse = schemaRegistryClient.getSchemaResponse(SchemaId.builder().
+                schemaArn(response.schemaArn())
+                .build());
+
+        System.out.println("^^COMPATIBILITY_SETTING 1: " + schemaResponse.compatibility());
+        return schemaResponse.compatibility();
     }
 
     /**

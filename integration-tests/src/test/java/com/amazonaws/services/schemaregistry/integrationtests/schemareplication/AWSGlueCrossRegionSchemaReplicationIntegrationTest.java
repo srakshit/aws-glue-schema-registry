@@ -16,6 +16,7 @@ package com.amazonaws.services.schemaregistry.integrationtests.schemareplication
 
 import com.amazonaws.services.schemaregistry.integrationtests.generators.*;
 import com.amazonaws.services.schemaregistry.integrationtests.properties.GlueSchemaRegistryConnectionProperties;
+import com.amazonaws.services.schemaregistry.utils.AWSSchemaRegistryConstants;
 import com.amazonaws.services.schemaregistry.utils.AvroRecordType;
 import com.amazonaws.services.schemaregistry.utils.ProtobufMessageType;
 import com.google.protobuf.DynamicMessage;
@@ -65,6 +66,10 @@ public class AWSGlueCrossRegionSchemaReplicationIntegrationTest {
     private static final String SRC_REGION = GlueSchemaRegistryConnectionProperties.SRC_REGION;
     private static final String DEST_REGION = GlueSchemaRegistryConnectionProperties.DEST_REGION;
     private static final String RECORD_TYPE = "GENERIC_RECORD";
+    private static final List<Compatibility> COMPATIBILITIES = Compatibility.knownValues()
+            .stream()
+            .filter(c -> c.toString().equals("NONE") || c.toString().equals("BACKWARD"))
+            .collect(Collectors.toList());
     private static LocalKafkaClusterHelper srcKafkaClusterHelper = new LocalKafkaClusterHelper();
     private static LocalKafkaClusterHelper destKafkaClusterHelper = new LocalKafkaClusterHelper();
     private static AwsCredentialsProvider awsCredentialsProvider = DefaultCredentialsProvider.builder()
@@ -72,10 +77,22 @@ public class AWSGlueCrossRegionSchemaReplicationIntegrationTest {
     private static List<String> schemasToCleanUp = new ArrayList<>();
     private final TestDataGeneratorFactory testDataGeneratorFactory = new TestDataGeneratorFactory();
 
+//    private static Stream<Arguments> testArgumentsProvider() {
+//        Stream.Builder<Arguments> argumentBuilder = Stream.builder();
+//        for (DataFormat dataFormat : DataFormat.knownValues()) {
+//            argumentBuilder.add(Arguments.of(dataFormat, RECORD_TYPE, Compatibility.BACKWARD));
+//        }
+//        return argumentBuilder.build();
+//    }
+
     private static Stream<Arguments> testArgumentsProvider() {
         Stream.Builder<Arguments> argumentBuilder = Stream.builder();
         for (DataFormat dataFormat : DataFormat.knownValues()) {
-            argumentBuilder.add(Arguments.of(dataFormat, RECORD_TYPE, Compatibility.BACKWARD));
+            for (Compatibility compatibility : COMPATIBILITIES) {
+                for (AWSSchemaRegistryConstants.COMPRESSION compression : AWSSchemaRegistryConstants.COMPRESSION.values()) {
+                    argumentBuilder.add(Arguments.of(dataFormat, RECORD_TYPE, compatibility, compression));
+                }
+            }
         }
         return argumentBuilder.build();
     }
@@ -149,7 +166,7 @@ public class AWSGlueCrossRegionSchemaReplicationIntegrationTest {
 
         //Delay added to allow MM2 copy the data to destination cluster
         //before consuming the records from the destination cluster
-        Thread.sleep(8000);
+        Thread.sleep(12000);
 
         ConsumerProperties.ConsumerPropertiesBuilder consumerPropertiesBuilder = ConsumerProperties.builder()
                 .topicName(String.format("%s.%s",SRC_CLUSTER_ALIAS, topic));

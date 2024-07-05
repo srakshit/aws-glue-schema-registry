@@ -36,26 +36,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.glue.GlueClientBuilder;
-import software.amazon.awssdk.services.glue.model.AlreadyExistsException;
-import software.amazon.awssdk.services.glue.model.CreateSchemaRequest;
-import software.amazon.awssdk.services.glue.model.CreateSchemaResponse;
-import software.amazon.awssdk.services.glue.model.DataFormat;
-import software.amazon.awssdk.services.glue.model.GetSchemaByDefinitionRequest;
-import software.amazon.awssdk.services.glue.model.GetSchemaByDefinitionResponse;
-import software.amazon.awssdk.services.glue.model.GetSchemaVersionRequest;
-import software.amazon.awssdk.services.glue.model.GetSchemaVersionResponse;
-import software.amazon.awssdk.services.glue.model.GetTagsRequest;
-import software.amazon.awssdk.services.glue.model.GetTagsResponse;
-import software.amazon.awssdk.services.glue.model.GlueRequest;
-import software.amazon.awssdk.services.glue.model.MetadataKeyValuePair;
-import software.amazon.awssdk.services.glue.model.PutSchemaVersionMetadataRequest;
-import software.amazon.awssdk.services.glue.model.PutSchemaVersionMetadataResponse;
-import software.amazon.awssdk.services.glue.model.QuerySchemaVersionMetadataRequest;
-import software.amazon.awssdk.services.glue.model.QuerySchemaVersionMetadataResponse;
-import software.amazon.awssdk.services.glue.model.RegisterSchemaVersionRequest;
-import software.amazon.awssdk.services.glue.model.RegisterSchemaVersionResponse;
-import software.amazon.awssdk.services.glue.model.RegistryId;
-import software.amazon.awssdk.services.glue.model.SchemaId;
+import software.amazon.awssdk.services.glue.model.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -156,6 +137,37 @@ public class AWSSchemaRegistryClient {
         }
     }
 
+    /**TODO: Document the method
+     * Get the schema by passing the schema id.
+     *
+     * @param schemaId schema id
+     * @return                schema definition returns the schema definition corresponding to the
+     *                        schema id passed and null in case service is not able to found the
+     *                        schema definition corresponding to schema id.
+     * @throws AWSSchemaRegistryException on any errors during schema retrieval from service
+     */
+    public GetSchemaResponse getSchemaResponse(@NonNull SchemaId schemaId)
+            throws AWSSchemaRegistryException {
+        GetSchemaResponse schemaResponse = null;
+
+        try {
+            schemaResponse = client.getSchema(getSchemaRequest(schemaId));
+            validateSchemaResponse(schemaResponse, schemaId);
+        } catch (Exception e) {
+            String errorMessage = String.format("Failed to get schema Id = %s", schemaId);
+            throw new AWSSchemaRegistryException(errorMessage, e);
+        }
+
+        return schemaResponse;
+    }
+
+    private GetSchemaRequest getSchemaRequest(SchemaId schemaId) {
+        GetSchemaRequest getSchemaRequest = GetSchemaRequest.builder()
+                .schemaId(schemaId)
+                .build();
+        return getSchemaRequest;
+    }
+
     /**
      * Get the schema definition by passing the schema id.
      *
@@ -184,6 +196,13 @@ public class AWSSchemaRegistryClient {
         GetSchemaVersionRequest getSchemaVersionRequest = GetSchemaVersionRequest.builder()
                 .schemaVersionId(schemaVersionId).build();
         return getSchemaVersionRequest;
+    }
+
+    private void validateSchemaResponse(GetSchemaResponse schemaResponse, SchemaId schemaId) {
+        if (schemaResponse == null || schemaId == null) {
+            String message = String.format("Schema is not present for the schema id = %s", schemaId.toString());
+            throw new AWSSchemaRegistryException(message);
+        }
     }
 
     private void validateSchemaVersionResponse(GetSchemaVersionResponse schemaVersionResponse, String schemaVersionId) {
